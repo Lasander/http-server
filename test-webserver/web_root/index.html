@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Websocket test, pure JS</title>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Websocket test</h1>
+
+      <button id="connect-button" class="btn btn-success" type="button">Connect</button>
+      <button id="disconnect-button" class="btn btn-danger" type="button">Disconnect</button>
+      <label id="connection-status"></label>
+
+      <br><br>
+
+      <div class="input-group mb-3">
+        <div class="input-group-prepend">
+          <button id="send-button" class="btn btn-outline-secondary" type="button">Send</button>
+        </div>
+        <input id="message" type="text" class="form-control" placeholder="Write message here" aria-label="" aria-describedby="basic-addon1">
+      </div>
+
+      <textarea class="container" id="output" rows="10" cols="50"></textarea>
+    </div>
+
+
+    <script>
+      $(() => {
+        const wsproto = (location.protocol === 'https:') ? 'wss:' : 'ws:';
+
+        let connection = undefined;
+        let output = $('#output');
+
+        function connect() {
+          if (!connection) {
+            connection = new WebSocket(wsproto + '//' + window.location.host + '/websocket');
+            connection.onmessage = (e) => {
+              output.val((i, text) => { return text + e.data + '\n'; });
+            }
+
+            connection.onerror = (error) => {
+              output.val((i, text) => { return text + 'WebSocket error' + '\n'; });
+              disconnect();
+            }
+
+            updateConnectionStatus();
+          }
+        }
+
+        function send() {
+          if (connection) {
+            const msg = $('#message').val();
+            if (msg) {
+              connection.send(msg);
+              $('#message').val('');
+            }
+          }
+        }
+
+        function disconnect() {
+          if (connection) {
+            connection.close();
+            connection = undefined;
+            updateConnectionStatus();
+          }
+        }
+
+        function updateConnectionStatus() {
+          $('#connection-status').text(connection ? 'Connected' : 'Disconnected');
+        }
+
+        $('#connect-button').click(connect);
+        $('#disconnect-button').click(disconnect);
+        $('#send-button').click(send);
+        updateConnectionStatus();
+      })
+  	</script>
+  </body>
+</html>
